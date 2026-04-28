@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0f2210">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GrowTracker">
+<title>GrowTracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg0:#080f08;--bg1:#0f1e0f;--bg2:#162616;--bg3:#1e331e;
+  --card:#0f1e0f;--card2:#162616;
+  --border:#2a3d2a;--border2:#3a5a3a;
+  --text:#e8f5e8;--text2:#8aab8a;--text3:#5a7a5a;
+  --green:#4caf50;--green2:#81c784;--green3:#2e7d32;
+  --amber:#ffa726;--amber2:#ffcc80;--amber3:#e65100;
+  --blue:#42a5f5;--blue2:#90caf9;
+  --coral:#ef5350;--coral2:#ffcdd2;
+  --teal:#26c6da;--teal2:#80deea;
+  --radius:16px;--radius-sm:10px;--radius-xs:6px;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg0);color:var(--text);font-family:var(--font)}
+input,select,textarea,button{font-family:var(--font);font-size:14px}
+input,select,textarea{background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:10px 13px;width:100%;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(76,175,80,.15)}
+select option{background:var(--bg2)}
+button{cursor:pointer;border:none;outline:none}
+
+.app{display:flex;flex-direction:column;height:100%;height:100dvh;padding-top:var(--safe-top)}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 8px;flex-shrink:0}
+.topbar-title{font-size:22px;font-weight:600;color:var(--text);letter-spacing:-0.5px}
+.topbar-sub{font-size:12px;color:var(--text3);margin-top:1px;font-family:var(--mono)}
+.topbar-btn{width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text2)}
+.topbar-btn svg{width:18px;height:18px}
+
+/* SCREENS */
+.screen{display:none;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(80px + var(--safe-bot))}
+.screen.active{display:block}
+.screen::-webkit-scrollbar{display:none}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--bg1);border-top:1px solid var(--border);padding:8px 0 calc(8px + var(--safe-bot));z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px;transition:opacity .15s}
+.nav-item:active{opacity:.7}
+.nav-ico{width:22px;height:22px;color:var(--text3);transition:color .2s}
+.nav-lbl{font-size:10px;color:var(--text3);transition:color .2s;font-weight:500}
+.nav-item.active .nav-ico{color:var(--green)}
+.nav-item.active .nav-lbl{color:var(--green)}
+
+/* SECTION LABEL */
+.sec-lbl{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;padding:0 18px;margin:16px 0 8px}
+
+/* HERO CARD */
+.hero{margin:6px 14px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:18px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(76,175,80,.12),transparent 70%);pointer-events:none}
+.hero-stage{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;margin-bottom:12px}
+.hero-day-num{font-size:48px;font-weight:600;line-height:1;letter-spacing:-2px;color:var(--text)}
+.hero-day-lbl{font-size:13px;color:var(--text2);margin-top:3px}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.hstat{background:var(--bg3);border-radius:12px;padding:11px 13px;border:1px solid var(--border)}
+.hstat-lbl{font-size:10px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.hstat-val{font-size:16px;font-weight:600;color:var(--text);margin-top:3px}
+.hstat-sub{font-size:11px;color:var(--text3);margin-top:1px}
+
+/* PROGRESS */
+.prog-wrap{padding:0 14px;margin-bottom:14px}
+.prog-stages{display:flex;gap:3px}
+.prog-seg{height:5px;border-radius:3px;flex:1;background:var(--bg3);overflow:hidden;position:relative}
+.prog-seg-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.prog-labels{display:flex;justify-content:space-between;margin-top:5px}
+.prog-lbl{font-size:9px;color:var(--text3);flex:1;text-align:center}
+.prog-lbl:first-child{text-align:left}
+.prog-lbl:last-child{text-align:right}
+
+/* ACTION CARDS */
+.action-list{padding:0 14px;display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.acard{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;transition:background .15s,border-color .15s}
+.acard:active{background:var(--bg2);border-color:var(--border2)}
+.acard-ico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.acard-ico svg{width:20px;height:20px}
+.acard-body{flex:1;min-width:0}
+.acard-title{font-size:13px;font-weight:500;color:var(--text)}
+.acard-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.acard-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;flex-shrink:0}
+
+/* PARAMS CHIPS */
+.chips{display:flex;gap:8px;padding:0 14px;margin-bottom:16px;overflow-x:auto}
+.chips::-webkit-scrollbar{display:none}
+.chip{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:9px 13px;flex-shrink:0}
+.chip-lbl{font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.chip-val{font-size:12px;font-weight:600;color:var(--text);margin-top:2px;font-family:var(--mono)}
+
+/* CALENDAR */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:4px 18px 12px}
+.cal-month{font-size:16px;font-weight:600;color:var(--text)}
+.cal-nbtn{width:32px;height:32px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text2)}
+.cal-nbtn svg{width:14px;height:14px}
+.cal-grid-wrap{padding:0 14px;margin-bottom:14px}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+.cal-dow-cell{text-align:center;font-size:10px;color:var(--text3);padding:4px 0;font-weight:600}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-cell{border-radius:10px;padding:5px 3px;min-height:50px;cursor:pointer;position:relative;border:1px solid transparent;transition:background .1s,border-color .1s}
+.cal-cell.has-ev{background:var(--bg2);border-color:var(--border)}
+.cal-cell.today{border:1.5px solid var(--green);background:rgba(76,175,80,.07)}
+.cal-cell.outside{opacity:.2;pointer-events:none}
+.cal-num{font-size:11px;font-weight:600;text-align:center;color:var(--text2)}
+.cal-cell.today .cal-num{color:var(--green)}
+.cal-dots{display:flex;gap:2px;justify-content:center;margin-top:4px;flex-wrap:wrap}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.cal-legend{padding:0 14px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)}
+
+/* LOG */
+.log-add{margin:4px 14px 14px;padding:13px;background:var(--bg2);border:1px dashed var(--border2);border-radius:var(--radius);text-align:center;color:var(--text3);font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px}
+.log-add:active{background:var(--bg3)}
+.log-list{padding:0 14px;display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.litem{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px}
+.litem-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.litem-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px}
+.litem-right{display:flex;align-items:center;gap:8px}
+.litem-date{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.litem-del{width:24px;height:24px;border-radius:50%;background:rgba(239,83,80,.15);border:none;color:var(--coral);font-size:14px;display:flex;align-items:center;justify-content:center}
+.litem-del:active{background:rgba(239,83,80,.3)}
+.litem-note{font-size:12px;color:var(--text2);line-height:1.5}
+
+/* SETUP */
+.setup-wrap{padding:0 14px;display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+.frow label{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:6px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-primary{width:calc(100% - 28px);margin:4px 14px;padding:14px;background:var(--green3);color:#fff;border-radius:var(--radius);font-size:14px;font-weight:600;letter-spacing:.02em;transition:background .15s}
+.btn-primary:active{background:var(--green)}
+.btn-sec{width:calc(100% - 28px);margin:6px 14px 14px;padding:12px;background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--radius);font-size:13px}
+.btn-sec:active{background:var(--bg2)}
+
+/* ICS / EXPORT CARD */
+.export-card{margin:0 14px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:16px}
+.export-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
+.export-body{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px}
+.export-btn{width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--green2);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px}
+.export-btn:active{background:var(--border)}
+.steps-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+.steps-list li{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text2);line-height:1.5}
+.step-num{width:18px;height:18px;border-radius:50%;background:var(--green3);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+
+/* MODAL SHEET */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:flex-end}
+.sheet-overlay.open{display:flex}
+.sheet{background:var(--bg1);border-radius:20px 20px 0 0;padding:16px;width:100%;border-top:1px solid var(--border2);padding-bottom:calc(16px + var(--safe-bot))}
+.sheet-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px}
+.sheet-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:14px}
+.sheet-form{display:flex;flex-direction:column;gap:12px}
+.sheet-form label{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px}
+.sheet-form textarea{height:72px;resize:none;line-height:1.5}
+.sheet-actions{display:flex;gap:8px;margin-top:6px}
+.sheet-ok{flex:1;padding:13px;background:var(--green3);color:#fff;border-radius:var(--radius-sm);font-size:14px;font-weight:600}
+.sheet-ok:active{background:var(--green)}
+.sheet-cancel{padding:13px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:13px}
+.sheet-cancel:active{background:var(--bg3)}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px 24px;color:var(--text3)}
+.empty-ico{font-size:40px;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.empty-body{font-size:13px;line-height:1.6}
+.empty-btn{margin-top:20px;display:inline-block;padding:11px 24px;background:var(--green3);color:#fff;border-radius:var(--radius);font-size:13px;font-weight:600}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(90px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg3);border:1px solid var(--border2);border-radius:99px;padding:9px 18px;font-size:12px;color:var(--text);z-index:300;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* stage colors */
+.s-germ{background:rgba(76,175,80,.18);color:#81c784}
+.s-plant{background:rgba(66,165,245,.18);color:#90caf9}
+.s-veg{background:rgba(38,198,218,.18);color:#80deea}
+.s-flor{background:rgba(255,167,38,.18);color:#ffcc80}
+.s-done{background:rgba(239,83,80,.15);color:#ffcdd2}
+.ico-germ{background:rgba(76,175,80,.18)}
+.ico-plant{background:rgba(66,165,245,.18)}
+.ico-veg{background:rgba(38,198,218,.18)}
+.ico-flor{background:rgba(255,167,38,.18)}
+.badge-water{background:rgba(66,165,245,.18);color:#90caf9}
+.badge-nuts{background:rgba(255,167,38,.18);color:#ffcc80}
+.badge-prune{background:rgba(76,175,80,.18);color:#81c784}
+.badge-transplant{background:rgba(239,83,80,.15);color:#ffcdd2}
+.badge-note{background:var(--bg3);color:var(--text2)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOP BAR -->
+<div class="topbar" id="topbar">
+  <div>
+    <div class="topbar-title">GrowTracker</div>
+    <div class="topbar-sub" id="topbar-sub">Sin ciclo activo</div>
+  </div>
+  <button class="topbar-btn" onclick="goScreen('setup')" aria-label="Ajustes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+  </button>
+</div>
+
+<!-- SCREEN: HOME -->
+<div id="scr-home" class="screen active">
+  <div id="no-cycle">
+    <div class="empty">
+      <div class="empty-ico">🌱</div>
+      <div class="empty-title">Sin ciclo activo</div>
+      <div class="empty-body">Configura tu primer ciclo de cultivo para comenzar el seguimiento diario de tu grow.</div>
+      <div class="empty-btn" onclick="goScreen('setup')">Iniciar ciclo</div>
+    </div>
+  </div>
+  <div id="has-cycle" style="display:none">
+    <div class="hero">
+      <div class="hero-stage" id="hero-badge">Germinación</div>
+      <div class="hero-day-num" id="hero-day">D1</div>
+      <div class="hero-day-lbl" id="hero-day-lbl">de 105 días totales</div>
+      <div class="hero-stats">
+        <div class="hstat"><div class="hstat-lbl">Próximo riego</div><div class="hstat-val" id="hero-water">—</div><div class="hstat-sub" id="hero-water-sub">—</div></div>
+        <div class="hstat"><div class="hstat-lbl">Cosecha</div><div class="hstat-val" id="hero-harvest">—</div><div class="hstat-sub" id="hero-harvest-sub">días restantes</div></div>
+      </div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-stages" id="prog-segs"></div>
+      <div class="prog-labels">
+        <span class="prog-lbl">Germ</span>
+        <span class="prog-lbl">Plántula</span>
+        <span class="prog-lbl">Vegetativo</span>
+        <span class="prog-lbl">Floración</span>
+      </div>
+    </div>
+    <div class="sec-lbl">Hoy</div>
+    <div class="action-list" id="home-actions"></div>
+    <div class="sec-lbl">Parámetros</div>
+    <div class="chips" id="home-chips"></div>
+  </div>
+</div>
+
+<!-- SCREEN: CALENDAR -->
+<div id="scr-cal" class="screen">
+  <div class="cal-nav">
+    <button class="cal-nbtn" onclick="prevMonth()" aria-label="Mes anterior">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="cal-month" id="cal-month-lbl">—</div>
+    <button class="cal-nbtn" onclick="nextMonth()" aria-label="Mes siguiente">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+  <div class="cal-grid-wrap">
+    <div class="cal-dow">
+      <div class="cal-dow-cell">Lu</div><div class="cal-dow-cell">Ma</div>
+      <div class="cal-dow-cell">Mi</div><div class="cal-dow-cell">Ju</div>
+      <div class="cal-dow-cell">Vi</div><div class="cal-dow-cell">Sa</div>
+      <div class="cal-dow-cell">Do</div>
+    </div>
+    <div class="cal-days" id="cal-days"></div>
+  </div>
+  <div class="cal-legend">
+    <div class="leg-item"><span class="dot" style="background:#42a5f5"></span>Agua</div>
+    <div class="leg-item"><span class="dot" style="background:#ffa726"></span>Nutrientes</div>
+    <div class="leg-item"><span class="dot" style="background:#4caf50"></span>Poda</div>
+    <div class="leg-item"><span class="dot" style="background:#ef5350"></span>Trasplante</div>
+  </div>
+</div>
+
+<!-- SCREEN: LOG -->
+<div id="scr-log" class="screen">
+  <button class="log-add" onclick="openSheet(null)" style="display:flex">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Agregar entrada al registro
+  </button>
+  <div class="log-list" id="log-list-el"></div>
+</div>
+
+<!-- SCREEN: SETUP -->
+<div id="scr-setup" class="screen">
+  <div class="setup-wrap">
+    <div class="frow"><label>Nombre del ciclo</label><input type="text" id="s-name" placeholder="Ej: Ciclo 4 · 4 plantas"></div>
+    <div class="frow"><label>Fecha de inicio (germinación)</label><input type="date" id="s-start"></div>
+    <div class="fgrid">
+      <div class="frow"><label>Plantas</label><input type="number" id="s-plants" value="4" min="1" max="99"></div>
+      <div class="frow"><label>Tipo</label><select id="s-type"><option value="photo">Fotoperiodo</option><option value="auto">Autofloreciente</option></select></div>
+    </div>
+    <div class="fgrid">
+      <div class="frow"><label>Semanas veg</label><input type="number" id="s-veg" value="6" min="2" max="16"></div>
+      <div class="frow"><label>Semanas floración</label><input type="number" id="s-flor" value="9" min="6" max="16"></div>
+    </div>
+  </div>
+  <button class="btn-primary" onclick="startCycle()">Iniciar ciclo</button>
+  <button class="btn-sec" onclick="resetCycle()">Reiniciar ciclo actual</button>
+
+  <div class="sec-lbl">Exportar</div>
+  <div class="export-card">
+    <div class="export-title">Google Calendar (.ics)</div>
+    <div class="export-body">Descarga el archivo con todos los riegos y trasplantes del ciclo. Importa en Google Calendar y activa notificaciones push para tu celular.</div>
+    <button class="export-btn" onclick="generateICS()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Descargar ciclo.ics
+    </button>
+  </div>
+
+  <div class="sec-lbl">Pasos para notificaciones push</div>
+  <div class="export-card">
+    <ul class="steps-list">
+      <li><span class="step-num">1</span>Descarga el .ics y ábrelo con Google Calendar</li>
+      <li><span class="step-num">2</span>En la app Calendar: Ajustes → tu calendario grow → activar notificaciones</li>
+      <li><span class="step-num">3</span>Opcional: IFTTT applet "evento Calendar con #riego → enviar email"</li>
+    </ul>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item active" id="nav-home" onclick="goScreen('home')" role="button" aria-label="Panel">
+    <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1V9.5z"/></svg>
+    <span class="nav-lbl">Panel</span>
+  </div>
+  <div class="nav-item" id="nav-cal" onclick="goScreen('cal')" role="button" aria-label="Calendario">
+    <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span class="nav-lbl">Calendario</span>
+  </div>
+  <div class="nav-item" id="nav-log" onclick="goScreen('log')" role="button" aria-label="Registro">
+    <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+    <span class="nav-lbl">Registro</span>
+  </div>
+  <div class="nav-item" id="nav-setup" onclick="goScreen('setup')" role="button" aria-label="Ajustes">
+    <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span class="nav-lbl">Ajustes</span>
+  </div>
+</nav>
+
+<!-- LOG SHEET MODAL -->
+<div class="sheet-overlay" id="sheet" onclick="closeSheet(event)">
+  <div class="sheet" id="sheet-inner">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Nueva entrada</div>
+    <div class="sheet-form">
+      <div><label>Tipo</label>
+        <select id="sl-type">
+          <option value="water">Riego — agua sola</option>
+          <option value="nuts">Riego — nutrientes</option>
+          <option value="prune">Poda / defoliación</option>
+          <option value="transplant">Trasplante</option>
+          <option value="note">Observación general</option>
+        </select>
+      </div>
+      <div><label>Fecha</label><input type="date" id="sl-date"></div>
+      <div><label>Notas (pH, EC, dosis, observaciones)</label>
+        <textarea id="sl-note" placeholder="Ej: BioBizz 2 ml/L · pH 6.3 · EC 1.6 · runoff OK"></textarea>
+      </div>
+      <div class="sheet-actions">
+        <button class="sheet-cancel" onclick="closeSheet()">Cancelar</button>
+        <button class="sheet-ok" onclick="saveLog()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+const STAGES=[
+  {id:'germ', name:'Germinación', days:7,  col:'#4caf50', cls:'s-germ', ico:'ico-germ'},
+  {id:'plant',name:'Plántula',    days:14, col:'#42a5f5', cls:'s-plant',ico:'ico-plant'},
+  {id:'veg',  name:'Vegetativo', days:42, col:'#26c6da', cls:'s-veg',  ico:'ico-veg'},
+  {id:'flor', name:'Floración',  days:63, col:'#ffa726', cls:'s-flor', ico:'ico-flor'},
+];
+const PARAMS={
+  germ: {Temp:'22–26°C',HR:'70–90%',pH:'6.0–6.5',EC:'0',Luz:'18h'},
+  plant:{Temp:'22–26°C',HR:'65–80%',pH:'6.0–6.5',EC:'0.4–0.8',Luz:'18h'},
+  veg:  {Temp:'22–28°C',HR:'55–70%',pH:'6.0–6.5',EC:'1.2–2.0',Luz:'18h'},
+  flor: {Temp:'18–26°C',HR:'40–55%',pH:'6.2–6.8',EC:'1.6–2.4',Luz:'12h'},
+};
+const ACTS={
+  germ: ['Revisar humedad del sustrato','Mantener 24–26°C constante','Sin riego extra si hay humedad'],
+  plant:['Test de peso antes de regar','Riego ligero en círculo','Agua sola — sin nutrientes'],
+  veg:  ['Test de peso para decidir','Riego cada 2 días aprox','Alternar agua / nutrientes'],
+  flor: ['Riego diario o cada 2 días','Verificar EC del runoff','Sem 9+: solo agua (lavado)'],
+};
+const ACT_ICO=['💧','🌡️','✂️'];
+
+let cycle=null, logs=[], calDate=new Date(), curScreen='home';
+
+// ── PERSIST ──
+function save(){try{localStorage.setItem('gt_cycle',JSON.stringify(cycle));localStorage.setItem('gt_logs',JSON.stringify(logs));}catch(e){}}
+function load(){try{const c=localStorage.getItem('gt_cycle');if(c)cycle=JSON.parse(c),cycle.start=new Date(cycle.start);const l=localStorage.getItem('gt_logs');if(l)logs=JSON.parse(l);}catch(e){}}
+
+// ── NAV ──
+function goScreen(id){
+  ['home','cal','log','setup'].forEach(s=>{
+    document.getElementById('scr-'+s).classList.toggle('active',s===id);
+    document.getElementById('nav-'+s).classList.toggle('active',s===id);
+  });
+  curScreen=id;
+  if(id==='cal')renderCal();
+  if(id==='log')renderLog();
+  if(id==='home')updateHome();
+}
+
+// ── CYCLE ──
+function getTot(){return 7+14+(cycle?cycle.vegDays:42)+(cycle?cycle.florDays:63);}
+function getStageDays(s){return s.id==='veg'?(cycle?cycle.vegDays:42):s.id==='flor'?(cycle?cycle.florDays:63):s.days;}
+function getStage(dayN){
+  let acc=0;
+  for(let s of STAGES){const d=getStageDays(s);if(dayN<=acc+d)return{stage:s,dayIn:dayN-acc,stageTotal:d};acc+=d;}
+  return{stage:{id:'done',name:'Cosecha',col:'#ef5350',cls:'s-done',ico:''},dayIn:1,stageTotal:1};
+}
+
+function startCycle(){
+  const name=document.getElementById('s-name').value.trim()||'Mi grow';
+  const start=document.getElementById('s-start').value;
+  if(!start){showToast('Selecciona fecha de inicio');return;}
+  const vd=parseInt(document.getElementById('s-veg').value||6)*7;
+  const fd=parseInt(document.getElementById('s-flor').value||9)*7;
+  STAGES[2].days=vd; STAGES[3].days=fd;
+  cycle={name,start:new Date(start+'T00:00:00'),plants:parseInt(document.getElementById('s-plants').value||4),vegDays:vd,florDays:fd};
+  save(); updateHome(); showToast('¡Ciclo iniciado!'); goScreen('home');
+}
+function resetCycle(){
+  if(!confirm('¿Reiniciar el ciclo? Se borrarán los ajustes pero no el registro.'))return;
+  cycle=null; save(); updateHome();
+}
+
+// ── HOME ──
+function updateHome(){
+  document.getElementById('no-cycle').style.display=cycle?'none':'block';
+  document.getElementById('has-cycle').style.display=cycle?'block':'none';
+  if(!cycle){document.getElementById('topbar-sub').textContent='Sin ciclo activo';return;}
+  const today=new Date();today.setHours(0,0,0,0);
+  const start=new Date(cycle.start);start.setHours(0,0,0,0);
+  const dayN=Math.max(1,Math.floor((today-start)/86400000)+1);
+  const tot=getTot();
+  const {stage,dayIn}=getStage(dayN);
+  const harv=new Date(start.getTime()+tot*86400000);
+  const dLeft=Math.max(0,Math.ceil((harv-today)/86400000));
+  const freq=stage.id==='germ'||stage.id==='plant'?3:stage.id==='veg'?2:1;
+  const nextW=freq-((dayN-1)%freq);
+
+  document.getElementById('topbar-sub').textContent=cycle.name+' · '+cycle.plants+' plantas';
+  document.getElementById('hero-day').textContent='D'+dayN;
+  document.getElementById('hero-day-lbl').textContent='de '+tot+' días · '+stage.name+' (día '+dayIn+')';
+  const badge=document.getElementById('hero-badge');
+  badge.textContent=stage.name; badge.className='hero-stage '+stage.cls;
+  document.getElementById('hero-water').textContent=nextW===1?'Hoy':'En '+nextW+' días';
+  document.getElementById('hero-water-sub').textContent=(dayN%4===0)?'Con nutrientes':'Solo agua';
+  document.getElementById('hero-harvest').textContent=dLeft===0?'¡Hoy!':dLeft+'d';
+  document.getElementById('hero-harvest-sub').textContent=harv.toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'});
+
+  // progress segments
+  let segHtml='';
+  let acc=0;
+  for(const s of STAGES){
+    const sd=getStageDays(s);
+    const pct=Math.min(100,Math.max(0,(dayN-acc)/sd*100));
+    acc+=sd;
+    segHtml+=`<div class="prog-seg" style="flex:${sd}"><div class="prog-seg-fill" style="width:${pct.toFixed(1)}%;background:${s.col}"></div></div>`;
+  }
+  document.getElementById('prog-segs').innerHTML=segHtml;
+
+  // actions
+  document.getElementById('home-actions').innerHTML=(ACTS[stage.id]||[]).map((a,i)=>`
+    <div class="acard">
+      <div class="acard-ico ${stage.ico}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${stage.col}" stroke-width="1.8">
+          ${i===0?'<path d="M12 2a7 7 0 017 7c0 4.5-7 13-7 13S5 13.5 5 9a7 7 0 017-7z"/>':i===1?'<path d="M12 20h9M4.22 4.22l1.42 1.42M1 12h2M4.22 19.78l1.42-1.42M12 1v2M17.36 6.64l1.42-1.42M20 12h2"/>':'<path d="M6 3h12l4 6-10 13L2 9z"/>'}
+        </svg>
+      </div>
+      <div class="acard-body">
+        <div class="acard-title">${a}</div>
+        <div class="acard-sub">${stage.name} · día ${dayIn}</div>
+      </div>
+      <span class="acard-badge ${i===0?'badge-water':i===1?'badge-note':'badge-prune'}">${i===0?'Riego':i===1?'Check':'Revisar'}</span>
+    </div>`).join('');
+
+  // chips
+  const p=PARAMS[stage.id]||PARAMS.flor;
+  document.getElementById('home-chips').innerHTML=Object.entries(p).map(([k,v])=>
+    `<div class="chip"><div class="chip-lbl">${k}</div><div class="chip-val">${v}</div></div>`).join('');
+}
+
+// ── CALENDAR ──
+let calDisp=new Date();
+function renderCal(){
+  const y=calDisp.getFullYear(),m=calDisp.getMonth();
+  const MOS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('cal-month-lbl').textContent=MOS[m]+' '+y;
+  const first=new Date(y,m,1);
+  let dow=first.getDay();dow=(dow===0)?6:dow-1;
+  const dim=new Date(y,m+1,0).getDate();
+  const today=new Date();today.setHours(0,0,0,0);
+  let html='';
+  for(let i=0;i<dow;i++)html+='<div class="cal-cell outside"></div>';
+  for(let d=1;d<=dim;d++){
+    const date=new Date(y,m,d);
+    const isToday=date.getTime()===today.getTime();
+    let dots='';
+    if(cycle){
+      const s=new Date(cycle.start);s.setHours(0,0,0,0);
+      const dn=Math.floor((date-s)/86400000)+1;
+      if(dn>0&&dn<=getTot()){
+        const{stage}=getStage(dn);
+        const freq=stage.id==='germ'||stage.id==='plant'?3:stage.id==='veg'?2:1;
+        if((dn-1)%freq===0) dots+=`<span class="dot" style="background:${dn%4===0?'#ffa726':'#42a5f5'}"></span>`;
+        const g7=7,g21=7+14;
+        if(dn===g7||dn===g21||dn===g21+1) dots+=`<span class="dot" style="background:#ef5350"></span>`;
+        if(stage.id==='veg'&&(dn===g21+7||dn===g21+21)) dots+=`<span class="dot" style="background:#4caf50"></span>`;
+      }
+    }
+    const dStr=date.toISOString().split('T')[0];
+    logs.filter(l=>l.date===dStr).forEach(l=>{
+      const c={water:'#42a5f5',nuts:'#ffa726',prune:'#4caf50',transplant:'#ef5350',note:'#8aab8a'}[l.type]||'#8aab8a';
+      dots+=`<span class="dot" style="background:${c};opacity:.6"></span>`;
+    });
+    html+=`<div class="cal-cell${dots?' has-ev':''}${isToday?' today':''}" onclick="calTap('${dStr}')">
+      <div class="cal-num">${d}</div>
+      <div class="cal-dots">${dots}</div>
+    </div>`;
+  }
+  document.getElementById('cal-days').innerHTML=html;
+}
+function prevMonth(){calDisp.setMonth(calDisp.getMonth()-1);renderCal();}
+function nextMonth(){calDisp.setMonth(calDisp.getMonth()+1);renderCal();}
+function calTap(dStr){document.getElementById('sl-date').value=dStr;openSheet(null);}
+
+// ── LOG ──
+function renderLog(){
+  const LABELS={water:'Riego · agua',nuts:'Riego · nutrientes',prune:'Poda',transplant:'Trasplante',note:'Observación'};
+  const BCLS={water:'badge-water',nuts:'badge-nuts',prune:'badge-prune',transplant:'badge-transplant',note:'badge-note'};
+  document.getElementById('log-list-el').innerHTML=logs.length===0?
+    '<div class="empty" style="padding:40px 24px"><div class="empty-ico">📋</div><div class="empty-title">Sin registros</div><div class="empty-body">Toca el botón de arriba para agregar tu primera entrada.</div></div>':
+    logs.map(l=>`<div class="litem">
+      <div class="litem-top">
+        <span class="litem-badge ${BCLS[l.type]||'badge-note'}">${LABELS[l.type]||l.type}</span>
+        <div class="litem-right">
+          <span class="litem-date">${l.date.slice(5).replace('-','/')}</span>
+          <button class="litem-del" onclick="delLog(${l.id})" aria-label="Eliminar">×</button>
+        </div>
+      </div>
+      <div class="litem-note">${l.note||'Sin notas'}</div>
+    </div>`).join('');
+}
+function delLog(id){logs=logs.filter(l=>l.id!==id);save();renderLog();if(curScreen==='cal')renderCal();}
+
+// ── SHEET ──
+function openSheet(dStr){
+  if(dStr)document.getElementById('sl-date').value=dStr;
+  else if(!document.getElementById('sl-date').value)
+    document.getElementById('sl-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('sheet').classList.add('open');
+}
+function closeSheet(e){
+  if(!e||e.target.id==='sheet')document.getElementById('sheet').classList.remove('open');
+}
+function saveLog(){
+  const type=document.getElementById('sl-type').value;
+  const date=document.getElementById('sl-date').value;
+  const note=document.getElementById('sl-note').value.trim();
+  if(!date){showToast('Selecciona una fecha');return;}
+  logs.unshift({id:Date.now(),type,date,note});
+  save(); renderLog(); closeSheet();
+  document.getElementById('sl-note').value='';
+  if(curScreen==='cal')renderCal();
+  showToast('Entrada guardada');
+}
+
+// ── ICS ──
+function generateICS(){
+  if(!cycle){showToast('Primero inicia un ciclo');return;}
+  const start=new Date(cycle.start);
+  const tot=getTot();
+  let ev='BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//GrowTracker//ES\nCALNAME:'+cycle.name+'\n';
+  for(let d=1;d<=tot;d++){
+    const date=new Date(start.getTime()+(d-1)*86400000);
+    const{stage}=getStage(d);
+    const freq=stage.id==='germ'||stage.id==='plant'?3:stage.id==='veg'?2:1;
+    if((d-1)%freq===0){
+      const ds=date.toISOString().split('T')[0].replace(/-/g,'');
+      const isN=d%4===0;
+      ev+=`BEGIN:VEVENT\nSUMMARY:🌱 Riego${isN?' +nutrientes':''} — ${stage.name} D${d} #riego\nDTSTART;VALUE=DATE:${ds}\nBEGIN:VALARM\nTRIGGER:-PT30M\nACTION:DISPLAY\nDESCRIPTION:Recordatorio de riego GrowTracker\nEND:VALARM\nEND:VEVENT\n`;
+    }
+  }
+  ev+='END:VCALENDAR';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([ev],{type:'text/calendar;charset=utf-8'}));
+  a.download='growtracker-ciclo.ics'; a.click();
+  showToast('.ics descargado');
+}
+
+// ── TOAST ──
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── SERVICE WORKER ──
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ── INIT ──
+load();
+document.getElementById('s-start').value=new Date().toISOString().split('T')[0];
+document.getElementById('sl-date').value=new Date().toISOString().split('T')[0];
+updateHome();
+renderCal();
+</script>
+</body>
+</html>
